@@ -1,0 +1,100 @@
+apply plugin: 'com.android.application'
+def releaseTime() {
+    return new Date().format("yyyyMMddHHmmss", TimeZone.getTimeZone("GMT+8"))
+}
+def projectName(){
+    return "jingpai";
+}
+def outApkPath(){
+    return "/home/zhang/testapk";
+}
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "com.xcode.lockcapture"
+        compileOptions.encoding = "UTF-8"
+        // dex突破65535的限制
+        multiDexEnabled true
+        minSdkVersion 19
+        targetSdkVersion 21
+        versionCode 7
+        versionName "1.8.1"
+        manifestPlaceholders = [ UMENG_CHANNEL_VALUE:"default_channel" ]
+    }
+    signingConfigs {
+        release {
+            storeFile file("domy.keystore")
+            storePassword "hiveviewdomybox"
+            keyAlias "domy"
+            keyPassword "hiveviewdomybox"
+        }
+        debug {
+            storeFile file("domy.keystore")
+        }
+    }
+    buildTypes {
+        debug {
+            debuggable true
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // release模式下，不显示log  assemble
+            buildConfigField("boolean", "LOG_DEBUG", "false")
+
+            // 版本名前缀
+            versionNameSuffix "-relase"
+            //zip 优化
+            zipAlignEnabled true
+            //混淆
+            minifyEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        //渠道Flavors，
+        productFlavors {
+            /*"xiaomi"{
+                manifestPlaceholders = [channelName: "xiaomi"]
+            }
+            "360market"{
+                manifestPlaceholders = [channelName: "360market"]
+            }
+            "baidu"{
+                manifestPlaceholders = [channelName: "baidu"]
+            }
+            "wandoujia"{
+                manifestPlaceholders = [channelName: "wandoujia"]
+            }*/
+            "hiveview"{
+                manifestPlaceholders = [channelName: "hiveview"]
+            }
+        }
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_7
+            targetCompatibility JavaVersion.VERSION_1_7
+        }
+       /* productFlavors.all { flavor ->
+            flavor.manifestPlaceholders = [ UMENG_CHANNEL_VALUE:name ]
+        }*/
+        applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                def outputFile = output.outputFile
+                if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                    def fileName = outputFile.name.replace(".apk","-${projectName()}-${defaultConfig.versionName}-${releaseTime()}.apk")
+                    output.outputFile = new File("${outApkPath()}", fileName)
+                }
+            }
+        }
+    }
+
+}
+
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:22.0.0'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+}
